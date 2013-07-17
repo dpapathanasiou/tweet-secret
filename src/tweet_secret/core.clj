@@ -27,7 +27,7 @@
   "Find the element within the list of tweet strings where the collective string length meets or exceeds the target length, and return its index, along with the excess amount"
   (if (> target-length (apply + (map #(.length %) eligible-tweets)))
     (list -1 0)
-    (loop [eligible-tweets eligible-tweets, counted-length 0, ind 0]
+    (loop [eligible-tweets eligible-tweets, counted-length 0, ind -1]
       (if (>= counted-length target-length)
         (list ind (- counted-length target-length))
         (recur (rest eligible-tweets) (+ counted-length (.length (first eligible-tweets))) (inc ind))))))
@@ -46,5 +46,27 @@
   (let [original-tweet (reduce #(str %1 %2) (seq (.split broadcast-tweet *excess-marker*)))]
     (loop [eligible-tweets eligible-tweets, counted-length 0]
       (if (= (first eligible-tweets) original-tweet)
-        (- counted-length (.indexOf broadcast-tweet *excess-marker*))
+        (- (+ counted-length (.length (first eligible-tweets))) (.indexOf broadcast-tweet *excess-marker*))
         (recur (rest eligible-tweets) (+ counted-length (.length (first eligible-tweets))))))))
+
+(defn grep-dictionary [w dict-text]
+  "Do the equivalent of grep -in '^[word]$' versus the dict-text string (the contents of a dictionary file) and return the matching line number, if any"
+  (try
+    (let [m (re-seq (re-pattern (str "(?i)\n" w "\n")) dict-text)]
+      (+ 1 (count (seq (.split (.substring dict-text 0 (.indexOf dict-text (first m))) "\n")))))
+    (catch Exception _ -1)))
+
+(defn lookup-dictionary [line-number dict-text]
+  "The opposite of grep-dictionary, this function takes a physical line number and returns the word found there in the dictionary file"
+  (try
+    (last (take line-number (seq (.split dict-text "\n"))))
+    (catch Exception _ nil)))
+
+(defn encode-plaintext [message dictionary-text tweets]
+  "Convert a string of words into encoded tweets for broadcast"
+  (map #(generate-tweet tweets (grep-dictionary % dictionary-text)) (seq (.split message " "))))
+
+(defn decode-tweets [dictionary-text eligible-tweets broadcast-tweets]
+  "Convert the list of broadcast tweets back into their original, secret message"
+  (map #(lookup-dictionary (find-target eligible-tweets %) dictionary-text) broadcast-tweets))
+
