@@ -78,13 +78,13 @@
   (let [[options args banner]
         (cli args
              "tweet-secret: Text steganography optimized for Twitter"
-             ["-c" "--corpus" "REQUIRED: at least one url or full path filename of the secret corpus texts (known only by you and your friends)"
+             ["-c" "--corpus" "REQUIRED: at least one url or full path filename of the secret corpus text(s) known only by you and your friends"
               :assoc-fn (fn [previous key val]
                           (assoc previous key
                                  (if-let [oldval (get previous key)]
                                    (conj oldval val)
                                    (vector val))))]
-             ["-d" "--decode" "Decode this tweet into plaintext (if none present, the text after the option switches will be encoded)"
+             ["-d" "--decode" "Decode this tweet into plaintext (if none present, text after all the option switches will be encoded)"
               :assoc-fn (fn [previous key val]
                           (assoc previous key
                                  (if-let [oldval (get previous key)]
@@ -95,9 +95,8 @@
               (< (count (:corpus options)) 1))
       (println banner)
       (System/exit 0))
-    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))
-          matrix-size     (apply + (map #(count %) eligible-tweets))]
-      (when (> (count (.split *dictionary-text* "\n")) matrix-size) 
+    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))]
+      (when (> (count (.split *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
       (if (= (count (:decode options)) 0)
