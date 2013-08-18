@@ -1,8 +1,9 @@
 (ns tweet-secret.core
-  (:require [tweet-secret.config :as config]))
+  (:require [tweet-secret.config :as config])
+  (:use [clojure.tools.cli :only [cli]]))
 
-(def *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
-(def *dictionary-text* (slurp (java.io.FileReader. (config/get-property "dictionary-file"))))
+(def ^:dynamic *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
+(def ^:dynamic *dictionary-text* (slurp (java.io.FileReader. (config/get-property "dictionary-file"))))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
@@ -71,4 +72,31 @@
 (defn decode-tweets [eligible-tweets broadcast-tweets]
   "Convert the list of broadcast tweets back into their original, secret message"
   (map #(lookup-dictionary (find-target eligible-tweets %) *dictionary-text*) broadcast-tweets))
+
+(defn -main [& args]
+  "Command line entry point for both encoding plaintext and decoding tweets"
+  (let [[options args banner]
+        (cli args
+             "tweet-secret: Text steganography optimized for Twitter"
+             ["-c" "--corpus" "REQUIRED: at least one url or full path filename of the secret corpus texts (known only by you and your friends)"
+              :assoc-fn (fn [previous key val]
+                          (assoc previous key
+                                 (if-let [oldval (get previous key)]
+                                   (merge oldval val)
+                                   (hash-set val))))]
+             ["-d" "--decode" "Decode this tweet into plaintext (if none present, the text after the option switches will be encoded)"
+              :assoc-fn (fn [previous key val]
+                          (assoc previous key
+                                 (if-let [oldval (get previous key)]
+                                   (merge oldval val)
+                                   (hash-set val))))]
+             ["-h" "--help" "Show the command line usage help" :default false :flag true])]
+    (when (or (:help options)
+              (< (count (:corpus options)) 1))
+      (println banner)
+      (System/exit 0))
+    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))]
+      (if (= (count (:decode options)) 0)
+        (encode-plaintext (reduce #(str %1 " " %2) args) eligible-tweets)
+        (decode-tweets eligible-tweets (:decode options))))))
 
