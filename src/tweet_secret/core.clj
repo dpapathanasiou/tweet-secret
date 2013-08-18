@@ -1,8 +1,8 @@
 (ns tweet-secret.core
   (:require [tweet-secret.config :as config]))
 
-(def *excess-marker* (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
-(def *dictionary-text* (slurp (config/get-property "dictionary-file")))
+(def *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
+(def *dictionary-text* (slurp (java.io.FileReader. (config/get-property "dictionary-file"))))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"

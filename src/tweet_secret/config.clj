@@ -1,7 +1,6 @@
 
 (ns tweet-secret.config
   (:use [clojure.java.io :only (reader)])
-  (:require [clojure.string :as str])
   (:import (java.util Properties)))
 
 (defn load-properties [src]
