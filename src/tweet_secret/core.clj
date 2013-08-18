@@ -82,14 +82,14 @@
               :assoc-fn (fn [previous key val]
                           (assoc previous key
                                  (if-let [oldval (get previous key)]
-                                   (merge oldval val)
-                                   (hash-set val))))]
+                                   (conj oldval val)
+                                   (vector val))))]
              ["-d" "--decode" "Decode this tweet into plaintext (if none present, the text after the option switches will be encoded)"
               :assoc-fn (fn [previous key val]
                           (assoc previous key
                                  (if-let [oldval (get previous key)]
-                                   (merge oldval val)
-                                   (hash-set val))))]
+                                   (conj oldval val)
+                                   (vector val))))]
              ["-h" "--help" "Show the command line usage help" :default false :flag true])]
     (when (or (:help options)
               (< (count (:corpus options)) 1))
