@@ -1,6 +1,8 @@
-(ns tweet-secret.core)
+(ns tweet-secret.core
+  (:require [tweet-secret.config :as config]))
 
-(def *excess-marker* "\u2758") ; U+2758 = Light Vertical Bar (an unobtrusive marker within the broadcast tweet text)
+(def *excess-marker* (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
+(def *dictionary-text* (slurp (config/get-property "dictionary-file")))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
@@ -62,11 +64,11 @@
     (last (take line-number (seq (.split dict-text "\n"))))
     (catch Exception _ nil)))
 
-(defn encode-plaintext [message dictionary-text tweets]
+(defn encode-plaintext [message eligible-tweets]
   "Convert a string of words into encoded tweets for broadcast"
-  (map #(generate-tweet tweets (grep-dictionary % dictionary-text)) (seq (.split message " "))))
+  (map #(generate-tweet eligible-tweets (grep-dictionary % *dictionary-text*)) (seq (.split message " "))))
 
-(defn decode-tweets [dictionary-text eligible-tweets broadcast-tweets]
+(defn decode-tweets [eligible-tweets broadcast-tweets]
   "Convert the list of broadcast tweets back into their original, secret message"
-  (map #(lookup-dictionary (find-target eligible-tweets %) dictionary-text) broadcast-tweets))
+  (map #(lookup-dictionary (find-target eligible-tweets %) *dictionary-text*) broadcast-tweets))
 
