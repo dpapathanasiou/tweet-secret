@@ -95,7 +95,11 @@
               (< (count (:corpus options)) 1))
       (println banner)
       (System/exit 0))
-    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))]
+    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))
+          matrix-size     (apply + (map #(count %) eligible-tweets))]
+      (when (> (count (.split *dictionary-text* "\n")) matrix-size) 
+        (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
+        (System/exit 0))
       (if (= (count (:decode options)) 0)
         (encode-plaintext (reduce #(str %1 " " %2) args) eligible-tweets)
         (decode-tweets eligible-tweets (:decode options))))))
