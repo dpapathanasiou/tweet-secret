@@ -3,6 +3,11 @@
   (:use [clojure.tools.cli :only [cli]]))
 
 (def ^:dynamic *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
+(def ^:dynamic *tweet-size*      (try
+                                   (-
+                                    (Integer/parseInt (config/get-property "tweet-size"))
+                                    (.length *excess-marker*))
+                                   (catch NumberFormatException _ 0)))
 (def ^:dynamic *dictionary-text* (reduce #(str %1 "\n" %2) (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))))
 
 (defn load-corpus [url-or-filename]
@@ -24,7 +29,7 @@
 
 (defn get-eligible-tweets [sentences]
   "Filter the list of sentences and return those which would fit into a tweet, leaving room for the excess marker character"
-  (filter #(and (<= (count %) (- 140 (.length *excess-marker*))) (> (count %) 0)) sentences))
+  (filter #(and (<= (count %) *tweet-size*) (> (count %) 0)) sentences))
 
 (defn get-matching-tweet [eligible-tweets target-length]
   "Find the element within the list of tweet strings where the collective string length meets or exceeds the target length, and return its index, along with the excess amount"
@@ -75,6 +80,12 @@
 
 (defn -main [& args]
   "Command line entry point for both encoding plaintext and decoding tweets"
+
+  ; make sure the properties data is defined correctly
+  (when (< (.length *tweet-size*) 1)
+    (println "\nSorry, the tweet-size in the config.properties file is not defined correctly. Please use a positive integer up to 140 and try again.\n")
+    (System/exit 0))
+  
   (let [[options args banner]
         (cli args
              "tweet-secret: Text steganography optimized for Twitter"
@@ -91,14 +102,20 @@
                                    (conj oldval val)
                                    (vector val))))]
              ["-h" "--help" "Show the command line usage help" :default false :flag true])]
+
+    ; make sure the command-line arguments are correct
     (when (or (:help options)
               (< (count (:corpus options)) 1))
       (println banner)
       (System/exit 0))
+    
     (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))]
+      ; make sure the corpus is large enough
       (when (> (count (.split *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
+
+      ; can now encode or decode as directed
       (if (= (count (:decode options)) 0)
         (encode-plaintext (reduce #(str %1 " " %2) args) eligible-tweets)
         (decode-tweets eligible-tweets (:decode options))))))
