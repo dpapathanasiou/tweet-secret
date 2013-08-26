@@ -3,7 +3,7 @@
   (:use [clojure.tools.cli :only [cli]]))
 
 (def ^:dynamic *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
-(def ^:dynamic *dictionary-text* (slurp (java.io.FileReader. (config/get-property "dictionary-file"))))
+(def ^:dynamic *dictionary-text* (reduce #(str %1 "\n" %2) (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
