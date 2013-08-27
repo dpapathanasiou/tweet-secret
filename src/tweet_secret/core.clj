@@ -54,7 +54,7 @@
 
 (defn find-target [eligible-tweets broadcast-tweet]
   "'Decode' the broadcast-tweet by removing the excess marker, look it up vs the collective length of the eligible tweets, account for the excess, returning the target number"
-  (let [original-tweet (utils/join-strings (seq (.split broadcast-tweet *excess-marker*)))]
+  (let [original-tweet (utils/join-strings (utils/split-string broadcast-tweet *excess-marker*))]
     (loop [eligible-tweets eligible-tweets, counted-length 0]
       (if (= (first eligible-tweets) original-tweet)
         (- (+ counted-length (.length (first eligible-tweets))) (.indexOf broadcast-tweet *excess-marker*))
@@ -64,18 +64,18 @@
   "Do the equivalent of grep -in '^[word]$' versus the dict-text string (the contents of a dictionary file) and return the matching line number, if any"
   (try
     (let [m (re-seq (re-pattern (str "(?i)\n" w "\n")) dict-text)]
-      (+ 1 (count (seq (.split (.substring dict-text 0 (.indexOf dict-text (first m))) "\n")))))
+      (+ 1 (count (utils/split-string (.substring dict-text 0 (.indexOf dict-text (first m))) "\n"))))
     (catch Exception _ -1)))
 
 (defn lookup-dictionary [line-number dict-text]
   "The opposite of grep-dictionary, this function takes a physical line number and returns the word found there in the dictionary file"
   (try
-    (last (take line-number (seq (.split dict-text "\n"))))
+    (last (take line-number (utils/split-string dict-text "\n")))
     (catch Exception _ nil)))
 
 (defn encode-plaintext [message eligible-tweets]
   "Convert a string of words into encoded tweets for broadcast"
-  (map #(generate-tweet eligible-tweets (grep-dictionary % *dictionary-text*)) (seq (.split message " "))))
+  (map #(generate-tweet eligible-tweets (grep-dictionary % *dictionary-text*)) (utils/split-string message " ")))
 
 (defn decode-tweets [eligible-tweets broadcast-tweets]
   "Convert the list of broadcast tweets back into their original, secret message"
@@ -113,7 +113,7 @@
       (System/exit 0))
 
     (let [eligible-tweets (get-eligible-tweets (parse-corpus (utils/join-strings (map #(load-corpus %) (:corpus options)) " ")))] ; make sure the corpus is large enough
-      (when (> (count (.split *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
+      (when (> (count (utils/split-string *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
 
