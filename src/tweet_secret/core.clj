@@ -1,5 +1,6 @@
 (ns tweet-secret.core
-  (:require [tweet-secret.config :as config])
+  (:require [tweet-secret.config :as config]
+            [tweet-secret.utils  :as utils])
   (:use [clojure.tools.cli :only [cli]]))
 
 (def ^:dynamic *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
@@ -8,7 +9,9 @@
                                     (Integer/parseInt (config/get-property "tweet-size"))
                                     (.length *excess-marker*))
                                    (catch NumberFormatException _ 0)))
-(def ^:dynamic *dictionary-text* (reduce #(str %1 "\n" %2) (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))))
+(def ^:dynamic *dictionary-text* (utils/join-strings
+                                  (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))
+                                  "\n"))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
@@ -51,7 +54,7 @@
 
 (defn find-target [eligible-tweets broadcast-tweet]
   "'Decode' the broadcast-tweet by removing the excess marker, look it up vs the collective length of the eligible tweets, account for the excess, returning the target number"
-  (let [original-tweet (reduce #(str %1 %2) (seq (.split broadcast-tweet *excess-marker*)))]
+  (let [original-tweet (utils/join-strings (seq (.split broadcast-tweet *excess-marker*)))]
     (loop [eligible-tweets eligible-tweets, counted-length 0]
       (if (= (first eligible-tweets) original-tweet)
         (- (+ counted-length (.length (first eligible-tweets))) (.indexOf broadcast-tweet *excess-marker*))
@@ -83,7 +86,7 @@
 
   ; make sure the properties data is defined correctly
   (when (< (.length *tweet-size*) 1)
-    (println "\nSorry, the tweet-size in the config.properties file is not defined correctly. Please use a positive integer up to 140 and try again.\n")
+    (println "\nSorry, the tweet-size in the config.properties file is not defined correctly. Please use a positive integer and try again.\n")
     (System/exit 0))
   
   (let [[options args banner]
@@ -108,15 +111,14 @@
               (< (count (:corpus options)) 1))
       (println banner)
       (System/exit 0))
-    
-    (let [eligible-tweets (get-eligible-tweets (parse-corpus (reduce #(str %1 " " %2) (map #(load-corpus %) (:corpus options)))))]
-      ; make sure the corpus is large enough
+
+    (let [eligible-tweets (get-eligible-tweets (parse-corpus (utils/join-strings (map #(load-corpus %) (:corpus options)) " ")))] ; make sure the corpus is large enough
       (when (> (count (.split *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
 
       ; can now encode or decode as directed
       (if (= (count (:decode options)) 0)
-        (encode-plaintext (reduce #(str %1 " " %2) args) eligible-tweets)
+        (encode-plaintext (utils/join-strings args " ") eligible-tweets)
         (decode-tweets eligible-tweets (:decode options))))))
 
