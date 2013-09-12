@@ -1,7 +1,8 @@
 (ns tweet-secret.core
   (:require [tweet-secret.config :as config]
             [tweet-secret.utils  :as utils])
-  (:use [clojure.tools.cli :only [cli]]))
+  (:use [clojure.tools.cli :only [cli]])
+  (:gen-class))
 
 (def ^:dynamic *excess-marker*   (config/get-property "excess-marker")) ; the unobtrusive marker within the broadcast tweet text
 (def ^:dynamic *tweet-size*      (try
