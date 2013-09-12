@@ -5,4 +5,5 @@
             :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/tools.cli "0.2.4"]]
-  :main tweet-secret.core)
+  :main tweet-secret.core
+  :aot [tweet-secret.core])
