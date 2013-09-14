@@ -74,13 +74,22 @@
     (last (take line-number (utils/split-string dict-text "\n")))
     (catch Exception _ nil)))
 
-(defn encode-plaintext [message eligible-tweets]
-  "Convert a string of words into encoded tweets for broadcast"
-  (map #(generate-tweet eligible-tweets (grep-dictionary % *dictionary-text*)) (utils/split-string message " ")))
+(defn encode-plaintext [message-tokens eligible-tweets]
+  "Convert a list of message strings into encoded tweets for broadcast"
+  (map #(generate-tweet eligible-tweets (grep-dictionary % *dictionary-text*)) message-tokens))
 
 (defn decode-tweets [eligible-tweets broadcast-tweets]
   "Convert the list of broadcast tweets back into their original, secret message"
   (map #(lookup-dictionary (find-target eligible-tweets %) *dictionary-text*) broadcast-tweets))
+
+(defn output-coding-result [res inp]
+  "Take the list of results produced by the (en/de)coding operation and write them to stdout,
+   along with any warnings if a given input atom could not be (en/de)coded correctly"
+  (doseq [[r i] (map list res inp)]
+    (println
+     (if r
+       r
+       (format "\t[WARNING]:\"%s\" could not be processed", i)))))
 
 (defn -main [& args]
   "Command line entry point for both encoding plaintext and decoding tweets"
@@ -118,8 +127,8 @@
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
 
-      ; can now encode or decode as directed
+      ; can now encode or decode as directed, writing the result to stdout
       (if (= (count (:decode options)) 0)
-        (encode-plaintext (utils/join-strings args " ") eligible-tweets)
-        (decode-tweets eligible-tweets (:decode options))))))
-
+        (let [message-tokens (utils/split-string (utils/join-strings args " ") " ")]
+          (output-coding-result (encode-plaintext message-tokens eligible-tweets) message-tokens))
+        (output-coding-result (decode-tweets eligible-tweets (:decode options)) eligible-tweets)))))
