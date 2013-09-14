@@ -31,6 +31,5 @@
 
 (defn en-tokenize-words [text]
   "Split the text string into individual word tokens"
-  (println "Me tto!")
   (utils/split-string (utils/join-strings text " ") " "))
 
