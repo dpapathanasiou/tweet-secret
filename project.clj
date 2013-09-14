@@ -1,4 +1,4 @@
-(defproject tweet-secret "0.1.0-SNAPSHOT"
+(defproject tweet-secret "1.0"
   :description "Steganography for Twitter"
   :url "http://github.com/dpapathanasiou/tweet-secret"
   :license {:name "MIT License"

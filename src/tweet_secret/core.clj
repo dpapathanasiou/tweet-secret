@@ -1,6 +1,7 @@
 (ns tweet-secret.core
   (:require [tweet-secret.config :as config]
-            [tweet-secret.utils  :as utils])
+            [tweet-secret.utils  :as utils]
+            [tweet-secret.languages :as langs])
   (:use [clojure.tools.cli :only [cli]])
   (:gen-class))
 
@@ -13,6 +14,8 @@
 (def ^:dynamic *dictionary-text* (utils/join-strings
                                   (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))
                                   "\n"))
+(def ^:dynamic *corpus-parse-fn* (resolve (symbol (config/get-property "corpus-parse-fn"))))
+(def ^:dynamic *tokenize-fn*     (resolve (symbol (config/get-property "tokenize-fn"))))
 
 (defn load-corpus [url-or-filename]
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
@@ -22,14 +25,10 @@
      #"\s{2,}" " ")
     (catch Exception _ nil)))
 
-(defn parse-corpus [corpus-text]
+(defn parse-corpus [parse-fn corpus-text]
   "Convert the corpus-text string into a list of parsed sentences (using a basic English grammar regex)"
   (when corpus-text
-    (map #(clojure.string/triml %)
-         (map #(clojure.string/trimr %)
-              (clojure.string/split
-               (clojure.string/replace corpus-text #"([.?!;])\s{1}" "$1\u0090") ; U+0090 = device control string (i.e., this is not expected to be in the corpus-text)
-               #"\u0090")))))
+    (parse-fn corpus-text)))
 
 (defn get-eligible-tweets [sentences]
   "Filter the list of sentences and return those which would fit into a tweet, leaving room for the excess marker character"
@@ -122,13 +121,14 @@
       (println banner)
       (System/exit 0))
 
-    (let [eligible-tweets (get-eligible-tweets (parse-corpus (utils/join-strings (map #(load-corpus %) (:corpus options)) " ")))] ; make sure the corpus is large enough
+    (let [eligible-tweets (get-eligible-tweets (parse-corpus *corpus-parse-fn* (utils/join-strings (map #(load-corpus %) (:corpus options)) " ")))] 
+      ; make sure the corpus is large enough
       (when (> (count (utils/split-string *dictionary-text* "\n")) (apply + (map #(count %) eligible-tweets))) 
         (println "\nSorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.\n")
         (System/exit 0))
 
       ; can now encode or decode as directed, writing the result to stdout
       (if (= (count (:decode options)) 0)
-        (let [message-tokens (utils/split-string (utils/join-strings args " ") " ")]
+        (let [message-tokens (*tokenize-fn* args)]
           (output-coding-result (encode-plaintext message-tokens eligible-tweets) message-tokens))
         (output-coding-result (decode-tweets eligible-tweets (:decode options)) eligible-tweets)))))
