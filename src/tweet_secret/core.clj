@@ -1,7 +1,7 @@
 (ns tweet-secret.core
   (:require [tweet-secret.config :as config]
             [tweet-secret.utils  :as utils]
-            [tweet-secret.languages :as langs])
+            [tweet-secret.languages :as languages])
   (:use [clojure.tools.cli :only [cli]])
   (:gen-class))
 
