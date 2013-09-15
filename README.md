@@ -13,7 +13,7 @@ Background and Motivation
 
 Twitter accounts are either completely private or public; if you have a public account and want to tweet something privately to a select list of people, there is no simple way to do it.
 
-Twitter does have a <a href="https://support.twitter.com/articles/14606-posting-or-deleting-direct-messages" target="_blank">direct message feature</a>, but it has several drawbacks: you can only send messages to people one at a time, you're limited to people who follow you explicitly, and worst of all, it may be subject to 3rd party snooping, governmental or othwerwise.
+Twitter does have a <a href="https://support.twitter.com/articles/14606-posting-or-deleting-direct-messages" target="_blank">direct message feature</a>, but it has several drawbacks: you can only send messages to people one at a time, you're limited to people who follow you explicitly, and worst of all, it may be subject to 3rd party snooping, governmental or otherwise.
 
 How It Works
 ------------
