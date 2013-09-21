@@ -103,7 +103,7 @@ The [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/mast
 
 - *tokenize-fn* defines the name of the function in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file to use for splitting the input message into a list of distinct tokens that are expected to be found in one or more of the dictionary-files property values.
 
-The default is English, but *any language* can be supported, as long as two functions are implemented in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file
+The default is English, but *any language* can be supported, as long as two functions are implemented in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file.
 
 1. A function to parse a string into a list of sentence strings, and 
 2. A function to split a message string into word tokens, where each token be expected to be found in one or more of the dictionary-files property values (as explained above).
@@ -114,7 +114,7 @@ Function (1) corresponds to *corpus-parse-fn* and (2) corresponds to *tokenize-f
 
 - The *tweet-size* value in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) must be a positive, non-zero integer value.
 
-- The "*-c*" or "*--corpus*" command line argument is required.
+- The "<i>-c</i>" or "<i>--corpus</i>" command line argument is required.
 
   This is the secret "book" known only by you and the people you want to be able to understand your message (see the Examples, below, for some ideas of what to use here).
 
@@ -142,7 +142,7 @@ Sorry, your corpus text is not large enough. Please use a larger text, or, inclu
 Examples
 --------
 
-Suppose we want to encode the message "*Tonight we take Paris by storm*" as a series of innocuous-looking tweets. 
+Suppose we want to encode the message "<b>Tonight we take Paris by storm</b>" as a series of innocuous-looking tweets. 
 
 Let's use <a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">The History Of The Conquest Of Mexico</a> (<a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">http://textfiles.com/etext/NONFICTION/mexico</a>) by William Hickling Prescott on [textfiles.com](http://textfiles.com/) as the randomly selected corpus text.
 
@@ -215,11 +215,11 @@ $ java -jar tweet-secret-1.0-standalone.jar --corpus http://textfiles.com/humor/
 
 The only caveat with using local files such as these is that your followers (i.e., people who decode the tweets) must have the same exact files on their computers.
 
-Future T0DO
+Future TODO
 ------------
 
-- [ ] Come up with a better strategy for handling message words which are not defined in the default *dictionary-files* texts
-- [ ] Pack multiple short tweets together into a single broadcast tweet, space-permitting, so that it's not always a 1:1 correspondence between words in the message to tweets (not only harder to break, but also more efficient use of bandwidth)
-- [ ] Create a graphical user interface in [Swing](http://en.wikipedia.org/wiki/Swing_%28Java%29), [Standard Widget Toolkit](http://en.wikipedia.org/wiki/Standard_Widget_Toolkit), or [Seesaw](https://github.com/daveray/seesaw) as an alternative to the command line interface
-- [ ] Use the [Twitter API](https://dev.twitter.com/) to post tweets automatically, if an application has been defined, and the relevant [application OAuth settings](https://dev.twitter.com/docs/application-permission-model) (Consumer key, Consumer secret, etc.) have been defined in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties)
+- Come up with a better strategy for handling message words which are not defined in the default *dictionary-files* texts
+- Pack multiple short tweets together into a single broadcast tweet, space-permitting, so that it's not always a 1:1 correspondence between words in the message to tweets (not only harder to break, but also more efficient use of bandwidth)
+- Create a graphical user interface in [Swing](http://en.wikipedia.org/wiki/Swing_%28Java%29), [Standard Widget Toolkit](http://en.wikipedia.org/wiki/Standard_Widget_Toolkit), or [Seesaw](https://github.com/daveray/seesaw) as an alternative to the command line interface
+- Use the [Twitter API](https://dev.twitter.com/) to post tweets automatically, if an application has been defined, and the relevant [application OAuth settings](https://dev.twitter.com/docs/application-permission-model) (Consumer key, Consumer secret, etc.) have been defined in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties)
 
