@@ -13,3 +13,8 @@
    As with the above, the idea for this util method is to improve the readbility and comprehension."
   (seq (.split s regex-string)))
 
+(defn slurp-url-or-file [resource]
+  "Attempt to slurp the url or file, returning either the contents on success, or nil on failure"
+  (try
+    (slurp resource)
+    (catch Exception _ nil)))

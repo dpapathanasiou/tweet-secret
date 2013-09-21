@@ -24,7 +24,7 @@ The corpus text is parsed into a list of sentences, filtered by character length
 
 Messages are encoded by looking up each word token in a common dictionary, then using that pointer reference (sequence in one or more dictionary lists) to a sentence in the set of eligible tweets whose preceeding cumulative string length matches the pointer. That sentence becomes the tweet to be broadcast, to correspond to the word token.
 
-Since the exact pointer position may not match the start or end of a corpus sentence exactly, an unobtrusive marker is used at that point in the text (by default a <a href="http://www.fileformat.info/info/unicode/char/00b7/index.htm" target="_blank">unicode middle dot</a> character, which can be changed in the config.properties file), which is important for decoding.
+Since the exact pointer position may not match the start or end of a corpus sentence exactly, an unobtrusive marker is used at that point in the text (by default a <a href="http://www.fileformat.info/info/unicode/char/00b7/index.htm" target="_blank">unicode middle dot</a> character, which can be changed in the [config.properties file](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties)), which is important for decoding.
 
 Tweets are decoded by finding their position in the set of eligible tweets, counting the cumulative string size up to that point, and adding the amount of the offset marker, if present. The resulting number is the dictionary pointer, which is used to lookup the corresponding word.
 
@@ -41,6 +41,28 @@ $ lein uberjar
 ```
 
 If the build succeeds, you should now have a jar file created in the repo's target folder named <tt>tweet-secret-1.0-standalone.jar</tt>.
+
+### Testing the Installation
+
+There are two test cases, containing four assertions, included which test the encoding and decoding of an English-language message, using a static corpus from gutenberg.org. 
+
+The dictionary for testing is re-bound to a static, universally available dictionary text found online, since the linux words file as defined by default in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) can vary from distro to distro and computer to computer.
+
+To run the tests, use this command (you will need an internet connection to have them run successfully, since both the corpus and dictionary texts used in the texts are defined as remote URLs):
+
+```
+$ lein test
+```
+
+If successful, you should see this:
+
+```
+
+lein test tweet-secret.core-test
+
+Ran 2 tests containing 4 assertions.
+0 failures, 0 errors.
+```
 
 Usage
 -----
@@ -120,7 +142,9 @@ by
 storm
 ```
 
-The encoding can also be done with multiple corpus texts, mixing urls and plain text files available on your computer's filesystem:
+The encoding can also be done with multiple corpus texts, mixing urls and plain text files available on your computer's filesystem, as this example, below, shows.
+
+**Using multiple corpus texts instead of just a single corpus text is highly recommended**, since it reduces the likelihood that someone attempting to crack your secret message discovers the underlying pattern.
 
 ```
 $ java -jar tweet-secret-1.0-standalone.jar --corpus http://textfiles.com/humor/1988.hilite \
@@ -136,5 +160,4 @@ $ java -jar tweet-secret-1.0-standalone.jar --corpus http://textfiles.com/humor/
 ```
 
 The only caveat with using local files such as these is that your followers (i.e., people who decode the tweets) must have the same exact files on their computers.
-
 

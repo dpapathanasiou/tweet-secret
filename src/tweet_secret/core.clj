@@ -12,7 +12,8 @@
                                     (.length *excess-marker*))
                                    (catch NumberFormatException _ 0)))
 (def ^:dynamic *dictionary-text* (utils/join-strings
-                                  (map #(slurp %) (clojure.string/split (config/get-property "dictionary-files") #" "))
+                                  (remove #(nil? %)
+                                          (map #(utils/slurp-url-or-file %) (clojure.string/split (config/get-property "dictionary-files") #" ")))
                                   "\n"))
 (def ^:dynamic *corpus-parse-fn* (resolve (symbol (config/get-property "corpus-parse-fn"))))
 (def ^:dynamic *tokenize-fn*     (resolve (symbol (config/get-property "tokenize-fn"))))
@@ -21,7 +22,7 @@
   "Fetch the text content contained in either the url or filename and return a string, with all whitespace normalized as plain text space"
   (try
     (clojure.string/replace
-     (clojure.string/replace (slurp url-or-filename) #"\s" " ")
+     (clojure.string/replace (utils/slurp-url-or-file url-or-filename) #"\s" " ")
      #"\s{2,}" " ")
     (catch Exception _ nil)))
 
