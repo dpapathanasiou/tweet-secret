@@ -120,7 +120,7 @@ Function (1) corresponds to *corpus-parse-fn* and (2) corresponds to *tokenize-f
 
 - The corpus text needs to be large enough so that it can parse enough eligible tweets (sentences that are *tweet-size* characters long or less) so that the number of eligible tweets is greater than or equal to the total number of words defined by the *dictionary-files* property in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties), because their relative sizes and positions is how the application maps words in the message to correspond to corpus tweets to broadcast.
 
-  This is not something you need to calculate in advance, but the best way to avoid it is to use the largest texts you can access, and ideally more than just one at a time, for security (again , see the Examples, below). 
+  This is not something you need to calculate in advance, but the best way to avoid it is to use the largest texts you can access, and ideally more than just one at a time, for security (see the Examples, below, for what this would look like). 
 
   If you do wind up using a corpus text which is too small, the application will give you this error message:
 
@@ -146,7 +146,7 @@ Suppose we want to encode the message "<b>Tonight we take Paris by storm</b>" as
 
 Let's use <a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">The History Of The Conquest Of Mexico</a> (<a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">http://textfiles.com/etext/NONFICTION/mexico</a>) by William Hickling Prescott on [textfiles.com](http://textfiles.com/) as the randomly selected corpus text.
 
-Again, the corpus text is known only by us and the followers we want to be able to read the message. The corpus text should be changed frequently, and ideally, never used twice, ever.
+The corpus text is known only by us and the followers we want to be able to read the message. The corpus text should be changed frequently, and ideally, never ever used more than once. It is also a good idea to use a list of several corpus texts in practice, since this lessens the chances that someone spying could guess the corpus and break the code (see below, after this first example, for what that looks like).
 
 Open a terminal, go to the target folder containing the standalone jar file, and type this command:
 
@@ -196,9 +196,11 @@ by
 storm
 ```
 
-The encoding can also be done with multiple corpus texts, mixing urls and plain text files available on your computer's filesystem, as this example, below, shows.
+### Multiple Corpus Texts (recommended)
 
-**Using multiple corpus texts instead of just a single corpus text is highly recommended**, since it reduces the likelihood that someone attempting to crack your secret message discovers the underlying pattern.
+The encoding can also be done with multiple corpus texts, either all remote urls, or mixing urls and plain text files available on your computer's filesystem.
+
+**Using multiple corpus texts instead of just a single corpus text is highly recommended**, since it reduces the likelihood that someone attempting to crack your secret message discovers the underlying pattern. It also help you avoid the <tt>corpus text is not large enough</tt> error.
 
 ```
 $ java -jar tweet-secret-1.0-standalone.jar --corpus http://textfiles.com/humor/1988.hilite \
