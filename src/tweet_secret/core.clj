@@ -89,14 +89,14 @@
     (println
      (if r
        r
-       (format "\t[WARNING]:\"%s\" could not be processed", i)))))
+       (format "\t[WARNING]: \"%s\" could not be processed", i)))))
 
 (defn -main [& args]
   "Command line entry point for both encoding plaintext and decoding tweets"
 
   ; make sure the properties data is defined correctly
   (when (< *tweet-size* 1)
-    (println "\nSorry, the tweet-size in the config.properties file is not defined correctly. Please use a positive integer and try again.\n")
+    (println "\nSorry, the tweet-size in the config.properties file is not defined correctly. Please use a non-zero positive integer and try again.\n")
     (System/exit 0))
   
   (let [[options args banner]

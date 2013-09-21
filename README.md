@@ -44,9 +44,9 @@ If the build succeeds, you should now have a jar file created in the repo's targ
 
 ### Testing the Installation
 
-There are two test cases, containing four assertions, included which test the encoding and decoding of an English-language message, using a static corpus from gutenberg.org. 
+There are two test cases, containing four assertions, included which test the encoding and decoding of an English-language message, using a [static corpus from gutenberg.org](http://www.gutenberg.org/cache/epub/1661/pg1661.txt). 
 
-The dictionary for testing is re-bound to a static, universally available dictionary text found online, since the linux words file as defined by default in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) can vary from distro to distro and computer to computer.
+The dictionary for testing is re-bound to a [static, universally available dictionary text](http://www.cs.duke.edu/~ola/ap/linuxwords) found online, since the linux words file as defined by default in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) can vary from distro to distro and computer to computer.
 
 To run the tests, use this command (you will need an internet connection to have them run successfully, since both the corpus and dictionary texts used in the texts are defined as remote URLs):
 
@@ -81,16 +81,70 @@ tweet-secret: Text steganography optimized for Twitter
 
 ```
 
-### Encoding
+### Configuration
 
-### Decoding
+The [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) file defines various settings used by the application for both encoding and decoding:
+
+- *tweet-size* defines the maximum text size for an encoded tweet text. 
+
+  The default is 140 characters which is the constraint imposed by Twitter, but this can be increased or decreased if desired. Note that changing it to anything but a positive, non-zero integer value will result in an error.
+
+- *excess-marker* is the unobtrusive marker character within the encoded tweet text. 
+
+  It is set by default as the <a href="http://www.fileformat.info/info/unicode/char/00b7/index.htm" target="_blank">Unicode Middle Dot (Latin-1 Supplement)</a> character.
+
+- *dictionary-files* defines a whitespace-separated list of files or urls containing text word lists to use for the first-pass of plaintext encoding.
+
+  It includes both the <tt>/usr/share/dict/words</tt> local file, which is the default for English on mac osx and most linux systems, and [http://www.cs.duke.edu/~ola/ap/linuxwords](http://www.cs.duke.edu/~ola/ap/linuxwords) an example of a text list found online.
+
+  Words in messages to be encoded need to exist in at least one of the files or urls defined here, so if your message uses specialized language or slang, you'll need to have the appropriate dictionary file(s) defined here as well.
+
+- *corpus-parse-fn* defines the name of the function in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file to use for parsing the corpus text into lists of grammatically correct sentences.
+
+- *tokenize-fn* defines the name of the function in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file to use for splitting the input message into a list of distinct tokens that are expected to be found in one or more of the dictionary-files property values.
+
+The default is English, but *any language* can be supported, as long as two functions are implemented in the [/src/tweet-secret/languages.clj](https://github.com/dpapathanasiou/tweet-secret/blob/master/src/tweet_secret/languages.clj) file
+
+1. A function to parse a string into a list of sentence strings, and 
+2. A function to split a message string into word tokens, where each token be expected to be found in one or more of the dictionary-files property values (as explained above).
+
+Function (1) corresponds to *corpus-parse-fn* and (2) corresponds to *tokenize-fn*.
+
+### Exceptions and Warnings
+
+- The *tweet-size* value in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) must be a positive, non-zero integer value.
+
+- The "*-c*" or "*--corpus*" command line argument is required.
+
+  This is the secret "book" known only by you and the people you want to be able to understand your message (see the Examples, below, for some ideas of what to use here).
+
+- The corpus text needs to be large enough so that it can parse enough eligible tweets (sentences that are *tweet-size* characters long or less) so that the number of eligible tweets is greater than or equal to the total number of words defined by the *dictionary-files* property in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties), because their relative sizes and positions is how the application maps words in the message to correspond to corpus tweets to broadcast.
+
+  This is not something you need to calculate in advance, but the best way to avoid it is to use the largest texts you can access, and ideally more than just one at a time, for security (again , see the Examples, below). 
+
+  If you do wind up using a corpus text which is too small, the application will give you this error message:
+
+```
+Sorry, your corpus text is not large enough. Please use a larger text, or, include additional --corpus options and try again.
+
+```
+
+- The words in the message you wish to encode must exist in the contents of at least one of the *dictionary-files* defined in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties).
+
+  To avoid this problem, add files or urls to the *dictionary-files* value in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties) which are sure to contain the words in your message, otherwise, the application will give you this warning:
+
+```
+	[WARNING]: "booyah" could not be processed
+```
+
+- If you try to decode a tweet which does not exist among the list of eligible tweets (sentences derived from parsing all the corpus texts), you will be greeted with a <tt>[WARNING]: "..." could not be processed</tt> warning.
 
 Examples
 --------
 
-Suppose we want to encode the message "<b>Tonight we take Paris by storm</b>" as a series of innocuous-looking tweets. 
+Suppose we want to encode the message "*Tonight we take Paris by storm*" as a series of innocuous-looking tweets. 
 
-Let's use <a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">The History Of The Conquest Of Mexico</a> by William Hickling Prescott on textfiles.com (<a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">http://textfiles.com/etext/NONFICTION/mexico</a>) as the randomly selected corpus text.
+Let's use <a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">The History Of The Conquest Of Mexico</a> (<a href="http://textfiles.com/etext/NONFICTION/mexico" target="_blank">http://textfiles.com/etext/NONFICTION/mexico</a>) by William Hickling Prescott on [textfiles.com](http://textfiles.com/) as the randomly selected corpus text.
 
 Again, the corpus text is known only by us and the followers we want to be able to read the message. The corpus text should be changed frequently, and ideally, never used twice, ever.
 
@@ -160,4 +214,12 @@ $ java -jar tweet-secret-1.0-standalone.jar --corpus http://textfiles.com/humor/
 ```
 
 The only caveat with using local files such as these is that your followers (i.e., people who decode the tweets) must have the same exact files on their computers.
+
+Future T0DO
+------------
+
+- [ ] Come up with a better strategy for handling message words which are not defined in the default *dictionary-files* texts
+- [ ] Pack multiple short tweets together into a single broadcast tweet, space-permitting, so that it's not always a 1:1 correspondence between words in the message to tweets (not only harder to break, but also more efficient use of bandwidth)
+- [ ] Create a graphical user interface in [Swing](http://en.wikipedia.org/wiki/Swing_%28Java%29), [Standard Widget Toolkit](http://en.wikipedia.org/wiki/Standard_Widget_Toolkit), or [Seesaw](https://github.com/daveray/seesaw) as an alternative to the command line interface
+- [ ] Use the [Twitter API](https://dev.twitter.com/) to post tweets automatically, if an application has been defined, and the relevant [application OAuth settings](https://dev.twitter.com/docs/application-permission-model) (Consumer key, Consumer secret, etc.) have been defined in [config.properties](https://github.com/dpapathanasiou/tweet-secret/blob/master/config.properties)
 
